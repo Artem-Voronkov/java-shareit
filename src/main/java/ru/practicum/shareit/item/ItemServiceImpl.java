@@ -34,7 +34,8 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto create(Long ownerId, ItemDto itemDto) {
         User owner = userRepository.findById(ownerId)
-                .orElseThrow(() -> new NotFoundException("Пользователь с id=" + ownerId + " не найден"));
+                .orElseThrow(() -> new NotFoundException(
+                        String.format("Пользователь с id=%d не найден", ownerId)));
 
         Item item = ItemMapper.toItem(itemDto, owner);
         Item saved = itemRepository.save(item);
@@ -44,11 +45,12 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto update(Long ownerId, Long itemId, ItemDto itemDto) {
         Item existing = itemRepository.findById(itemId)
-                .orElseThrow(() -> new NotFoundException("Вещь с id=" + itemId + " не найдена"));
+                .orElseThrow(() -> new NotFoundException(
+                        String.format("Вещь с id=%d не найдена", itemId)));
 
         if (existing.getOwner() == null || !existing.getOwner().getId().equals(ownerId)) {
-            throw new NotFoundException("Пользователь с id=" + ownerId
-                    + " не является владельцем вещи id=" + itemId);
+            throw new NotFoundException(String.format(
+                    "Пользователь с id=%d не является владельцем вещи id=%d", ownerId, itemId));
         }
 
         if (itemDto.getName() != null) {
@@ -68,7 +70,8 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDetailsDto getById(Long userId, Long itemId) {
         Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new NotFoundException("Вещь с id=" + itemId + " не найдена"));
+                .orElseThrow(() -> new NotFoundException(
+                        String.format("Вещь с id=%d не найдена", itemId)));
 
         BookingShortDto last = null;
         BookingShortDto next = null;
@@ -114,10 +117,12 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public CommentDto addComment(Long userId, Long itemId, CreateCommentDto dto) {
         User author = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
+                .orElseThrow(() -> new NotFoundException(
+                        String.format("Пользователь с id=%d не найден", userId)));
 
         Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new NotFoundException("Вещь с id=" + itemId + " не найдена"));
+                .orElseThrow(() -> new NotFoundException(
+                        String.format("Вещь с id=%d не найдена", itemId)));
 
         boolean hasFinishedBooking = bookingRepository.existsByBooker_IdAndItem_IdAndStatusAndEndBefore(
                 userId, itemId, BookingStatus.APPROVED, LocalDateTime.now());

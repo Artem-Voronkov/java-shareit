@@ -60,6 +60,7 @@ public class BookingController {
 
     private BookingState parseState(String state) {
         return BookingState.from(state)
-                .orElseThrow(() -> new ValidationException("Unknown state: " + state));
+                .orElseThrow(() -> new ValidationException(
+                        String.format("Unknown state: %s", state)));
     }
 }

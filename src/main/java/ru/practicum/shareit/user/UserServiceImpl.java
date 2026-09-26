@@ -18,7 +18,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto create(UserDto userDto) {
         if (userRepository.existsByEmailIgnoreCase(userDto.getEmail())) {
-            throw new ConflictException("Пользователь с email " + userDto.getEmail() + " уже существует");
+            throw new ConflictException(
+                    String.format("Пользователь с email %s уже существует", userDto.getEmail()));
         }
         User user = UserMapper.toUser(userDto);
         User saved = userRepository.save(user);
@@ -28,12 +29,14 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto update(Long userId, UserDto userDto) {
         User existing = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
+                .orElseThrow(() -> new NotFoundException(
+                        String.format("Пользователь с id=%d не найден", userId)));
 
         if (userDto.getEmail() != null
                 && !userDto.getEmail().equalsIgnoreCase(existing.getEmail())
                 && userRepository.existsByEmailIgnoreCase(userDto.getEmail())) {
-            throw new ConflictException("Пользователь с email " + userDto.getEmail() + " уже существует");
+            throw new ConflictException(
+                    String.format("Пользователь с email %s уже существует", userDto.getEmail()));
         }
 
         if (userDto.getName() != null) {
@@ -50,7 +53,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto getById(Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
+                .orElseThrow(() -> new NotFoundException(
+                        String.format("Пользователь с id=%d не найден", userId)));
         return UserMapper.toUserDto(user);
     }
 
@@ -64,7 +68,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public void delete(Long userId) {
         userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
+                .orElseThrow(() -> new NotFoundException(
+                        String.format("Пользователь с id=%d не найден", userId)));
         userRepository.deleteById(userId);
     }
 }

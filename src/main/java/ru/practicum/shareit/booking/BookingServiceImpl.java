@@ -26,17 +26,21 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingDto create(Long userId, BookItemRequestDto dto) {
         User booker = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
+                .orElseThrow(() -> new NotFoundException(
+                        String.format("Пользователь с id=%d не найден", userId)));
 
         Item item = itemRepository.findById(dto.getItemId())
-                .orElseThrow(() -> new NotFoundException("Вещь с id=" + dto.getItemId() + " не найдена"));
+                .orElseThrow(() -> new NotFoundException(
+                        String.format("Вещь с id=%d не найдена", dto.getItemId())));
 
         if (!item.getAvailable()) {
-            throw new ValidationException("Вещь с id=" + item.getId() + " недоступна для бронирования");
+            throw new ValidationException(
+                    String.format("Вещь с id=%d недоступна для бронирования", item.getId()));
         }
 
         if (item.getOwner().getId().equals(userId)) {
-            throw new NotFoundException("Вещь с id=" + item.getId() + " не найдена");
+            throw new NotFoundException(
+                    String.format("Вещь с id=%d не найдена", item.getId()));
         }
 
         if (!dto.getEnd().isAfter(dto.getStart())) {
@@ -51,7 +55,8 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingDto approve(Long ownerId, Long bookingId, boolean approved) {
         Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new NotFoundException("Бронирование с id=" + bookingId + " не найдено"));
+                .orElseThrow(() -> new NotFoundException(
+                        String.format("Бронирование с id=%d не найдено", bookingId)));
 
         if (!booking.getItem().getOwner().getId().equals(ownerId)) {
             throw new ValidationException(String.format(
@@ -71,13 +76,15 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingDto getById(Long userId, Long bookingId) {
         Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new NotFoundException("Бронирование с id=" + bookingId + " не найдено"));
+                .orElseThrow(() -> new NotFoundException(
+                        String.format("Бронирование с id=%d не найдено", bookingId)));
 
         boolean isBooker = booking.getBooker().getId().equals(userId);
         boolean isOwner = booking.getItem().getOwner().getId().equals(userId);
 
         if (!isBooker && !isOwner) {
-            throw new NotFoundException("Бронирование с id=" + bookingId + " не найдено");
+            throw new NotFoundException(
+                    String.format("Бронирование с id=%d не найдено", bookingId));
         }
 
         return BookingMapper.toBookingDto(booking);
@@ -86,7 +93,8 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<BookingDto> getAllByBooker(Long bookerId, BookingState state) {
         userRepository.findById(bookerId)
-                .orElseThrow(() -> new NotFoundException("Пользователь с id=" + bookerId + " не найден"));
+                .orElseThrow(() -> new NotFoundException(
+                        String.format("Пользователь с id=%d не найден", bookerId)));
 
         LocalDateTime now = LocalDateTime.now();
         List<Booking> bookings = switch (state) {
@@ -109,7 +117,8 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<BookingDto> getAllByOwner(Long ownerId, BookingState state) {
         userRepository.findById(ownerId)
-                .orElseThrow(() -> new NotFoundException("Пользователь с id=" + ownerId + " не найден"));
+                .orElseThrow(() -> new NotFoundException(
+                        String.format("Пользователь с id=%d не найден", ownerId)));
 
         LocalDateTime now = LocalDateTime.now();
         List<Booking> bookings = switch (state) {
