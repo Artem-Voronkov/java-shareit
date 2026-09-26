@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item;
 
 import ru.practicum.shareit.item.dto.BookingShortDto;
+import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemBookingDto;
 import ru.practicum.shareit.item.dto.ItemDetailsDto;
 import ru.practicum.shareit.item.dto.ItemDto;
@@ -8,6 +9,7 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.request.ItemRequest;
 import ru.practicum.shareit.user.User;
 
+import java.util.List;
 import java.util.Optional;
 
 public class ItemMapper {
@@ -38,7 +40,8 @@ public class ItemMapper {
 
     public static ItemBookingDto toItemBookingDto(Item item,
                                                   BookingShortDto lastBooking,
-                                                  BookingShortDto nextBooking) {
+                                                  BookingShortDto nextBooking,
+                                                  List<CommentDto> comments) {
         Long requestId = Optional.ofNullable(item.getRequest())
                 .map(ItemRequest::getId)
                 .orElse(null);
@@ -50,13 +53,15 @@ public class ItemMapper {
                 item.getAvailable(),
                 requestId,
                 lastBooking,
-                nextBooking
+                nextBooking,
+                comments
         );
     }
 
     public static ItemDetailsDto toItemDetailsDto(Item item,
                                                   BookingShortDto lastBooking,
-                                                  BookingShortDto nextBooking) {
+                                                  BookingShortDto nextBooking,
+                                                  List<CommentDto> comments) {
         Long requestId = Optional.ofNullable(item.getRequest())
                 .map(ItemRequest::getId)
                 .orElse(null);
@@ -68,7 +73,17 @@ public class ItemMapper {
                 item.getAvailable(),
                 requestId,
                 lastBooking,
-                nextBooking
+                nextBooking,
+                comments
+        );
+    }
+
+    public static CommentDto toCommentDto(Comment comment) {
+        return new CommentDto(
+                comment.getId(),
+                comment.getText(),
+                comment.getAuthor().getName(),
+                comment.getCreated()
         );
     }
 }

@@ -1,24 +1,18 @@
 package ru.practicum.shareit.item.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
-import java.util.List;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ItemBookingDto {
-    Long id;
-    String name;
-    String description;
-    Boolean available;
-    Long requestId;
-    BookingShortDto lastBooking;
-    BookingShortDto nextBooking;
-    List<CommentDto> comments;
+public class CreateCommentDto {
+
+    @NotBlank(message = "Текст отзыва не должен быть пустым")
+    String text;
 }

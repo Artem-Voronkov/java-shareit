@@ -6,7 +6,10 @@ import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.BookingStatus;
 import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.dto.BookingShortDto;
+import ru.practicum.shareit.item.dto.CommentDto;
+import ru.practicum.shareit.item.dto.CreateCommentDto;
 import ru.practicum.shareit.item.dto.ItemBookingDto;
 import ru.practicum.shareit.item.dto.ItemDetailsDto;
 import ru.practicum.shareit.item.dto.ItemDto;
@@ -26,6 +29,7 @@ public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
+    private final CommentRepository commentRepository;
 
     @Override
     public ItemDto create(Long ownerId, ItemDto itemDto) {
@@ -77,7 +81,9 @@ public class ItemServiceImpl implements ItemService {
             next = findNextBooking(bookings, now);
         }
 
-        return ItemMapper.toItemDetailsDto(item, last, next);
+        List<CommentDto> comments = getCommentsForItem(itemId);
+
+        return ItemMapper.toItemDetailsDto(item, last, next, comments);
     }
 
     @Override
@@ -89,7 +95,8 @@ public class ItemServiceImpl implements ItemService {
                     List<Booking> bookings = bookingRepository.findByItem_IdOrderByStartAsc(item.getId());
                     BookingShortDto last = findLastBooking(bookings, now);
                     BookingShortDto next = findNextBooking(bookings, now);
-                    return ItemMapper.toItemBookingDto(item, last, next);
+                    List<CommentDto> comments = getCommentsForItem(item.getId());
+                    return ItemMapper.toItemBookingDto(item, last, next, comments);
                 })
                 .collect(Collectors.toList());
     }
@@ -101,6 +108,38 @@ public class ItemServiceImpl implements ItemService {
         }
         return itemRepository.search(text).stream()
                 .map(ItemMapper::toItemDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public CommentDto addComment(Long userId, Long itemId, CreateCommentDto dto) {
+        User author = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
+
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new NotFoundException("Вещь с id=" + itemId + " не найдена"));
+
+        boolean hasFinishedBooking = bookingRepository.existsByBooker_IdAndItem_IdAndStatusAndEndBefore(
+                userId, itemId, BookingStatus.APPROVED, LocalDateTime.now());
+
+        if (!hasFinishedBooking) {
+            throw new ValidationException(
+                    "Оставить отзыв может только пользователь, ранее арендовавший эту вещь");
+        }
+
+        Comment comment = new Comment();
+        comment.setText(dto.getText());
+        comment.setItem(item);
+        comment.setAuthor(author);
+        comment.setCreated(LocalDateTime.now());
+
+        Comment saved = commentRepository.save(comment);
+        return ItemMapper.toCommentDto(saved);
+    }
+
+    private List<CommentDto> getCommentsForItem(Long itemId) {
+        return commentRepository.findByItem_IdOrderByCreatedDesc(itemId).stream()
+                .map(ItemMapper::toCommentDto)
                 .collect(Collectors.toList());
     }
 

@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -18,4 +20,5 @@ public class ItemDetailsDto {
     Long requestId;
     BookingShortDto lastBooking;
     BookingShortDto nextBooking;
+    List<CommentDto> comments;
 }
