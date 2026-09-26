@@ -2,12 +2,20 @@ package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.booking.Booking;
+import ru.practicum.shareit.booking.BookingRepository;
+import ru.practicum.shareit.booking.BookingStatus;
 import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.item.dto.BookingShortDto;
+import ru.practicum.shareit.item.dto.ItemBookingDto;
+import ru.practicum.shareit.item.dto.ItemDetailsDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
 
+import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -17,6 +25,7 @@ public class ItemServiceImpl implements ItemService {
 
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
+    private final BookingRepository bookingRepository;
 
     @Override
     public ItemDto create(Long ownerId, ItemDto itemDto) {
@@ -53,16 +62,35 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public ItemDto getById(Long itemId) {
+    public ItemDetailsDto getById(Long userId, Long itemId) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Вещь с id=" + itemId + " не найдена"));
-        return ItemMapper.toItemDto(item);
+
+        BookingShortDto last = null;
+        BookingShortDto next = null;
+
+        boolean isOwner = item.getOwner() != null && item.getOwner().getId().equals(userId);
+        if (isOwner) {
+            LocalDateTime now = LocalDateTime.now();
+            List<Booking> bookings = bookingRepository.findByItem_IdOrderByStartAsc(item.getId());
+            last = findLastBooking(bookings, now);
+            next = findNextBooking(bookings, now);
+        }
+
+        return ItemMapper.toItemDetailsDto(item, last, next);
     }
 
     @Override
-    public List<ItemDto> getAllByOwner(Long ownerId) {
+    public List<ItemBookingDto> getAllByOwner(Long ownerId) {
+        LocalDateTime now = LocalDateTime.now();
+
         return itemRepository.findAllByOwnerId(ownerId).stream()
-                .map(ItemMapper::toItemDto)
+                .map(item -> {
+                    List<Booking> bookings = bookingRepository.findByItem_IdOrderByStartAsc(item.getId());
+                    BookingShortDto last = findLastBooking(bookings, now);
+                    BookingShortDto next = findNextBooking(bookings, now);
+                    return ItemMapper.toItemBookingDto(item, last, next);
+                })
                 .collect(Collectors.toList());
     }
 
@@ -74,5 +102,32 @@ public class ItemServiceImpl implements ItemService {
         return itemRepository.search(text).stream()
                 .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());
+    }
+
+    private BookingShortDto findLastBooking(List<Booking> bookings, LocalDateTime now) {
+        return bookings.stream()
+                .filter(b -> b.getStatus() == BookingStatus.APPROVED)
+                .filter(b -> !b.getStart().isAfter(now))
+                .max(Comparator.comparing(Booking::getStart))
+                .map(this::toBookingShortDto)
+                .orElse(null);
+    }
+
+    private BookingShortDto findNextBooking(List<Booking> bookings, LocalDateTime now) {
+        return bookings.stream()
+                .filter(b -> b.getStatus() == BookingStatus.APPROVED)
+                .filter(b -> b.getStart().isAfter(now))
+                .min(Comparator.comparing(Booking::getStart))
+                .map(this::toBookingShortDto)
+                .orElse(null);
+    }
+
+    private BookingShortDto toBookingShortDto(Booking booking) {
+        return new BookingShortDto(
+                booking.getId(),
+                booking.getBooker().getId(),
+                booking.getStart(),
+                booking.getEnd()
+        );
     }
 }
