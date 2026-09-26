@@ -48,7 +48,7 @@ public class ItemServiceImpl implements ItemService {
             existing.setAvailable(itemDto.getAvailable());
         }
 
-        Item updated = itemRepository.update(existing);
+        Item updated = itemRepository.save(existing);
         return ItemMapper.toItemDto(updated);
     }
 
@@ -68,6 +68,9 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemDto> search(String text) {
+        if (text == null || text.isBlank()) {
+            return List.of();
+        }
         return itemRepository.search(text).stream()
                 .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());

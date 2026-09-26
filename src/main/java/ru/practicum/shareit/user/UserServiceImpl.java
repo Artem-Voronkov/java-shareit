@@ -17,7 +17,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto create(UserDto userDto) {
-        if (userRepository.existsByEmail(userDto.getEmail())) {
+        if (userRepository.existsByEmailIgnoreCase(userDto.getEmail())) {
             throw new ConflictException("Пользователь с email " + userDto.getEmail() + " уже существует");
         }
         User user = UserMapper.toUser(userDto);
@@ -32,7 +32,7 @@ public class UserServiceImpl implements UserService {
 
         if (userDto.getEmail() != null
                 && !userDto.getEmail().equalsIgnoreCase(existing.getEmail())
-                && userRepository.existsByEmail(userDto.getEmail())) {
+                && userRepository.existsByEmailIgnoreCase(userDto.getEmail())) {
             throw new ConflictException("Пользователь с email " + userDto.getEmail() + " уже существует");
         }
 
@@ -43,7 +43,7 @@ public class UserServiceImpl implements UserService {
             existing.setEmail(userDto.getEmail());
         }
 
-        User updated = userRepository.update(existing);
+        User updated = userRepository.save(existing);
         return UserMapper.toUserDto(updated);
     }
 
