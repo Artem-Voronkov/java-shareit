@@ -41,12 +41,32 @@ class BookingServiceImplIntegrationTest {
     private User owner;
     private User booker;
     private Item item;
+    private Booking currentBooking;
+    private Booking pastBooking;
+    private Booking futureWaitingBooking;
+    private Booking rejectedBooking;
 
     @BeforeEach
     void setUp() {
         owner = userRepository.save(new User(null, "Owner", "owner@test.com"));
         booker = userRepository.save(new User(null, "Booker", "booker@test.com"));
         item = itemRepository.save(new Item(null, "Дрель", "Описание", true, owner, null));
+    }
+
+    @BeforeEach
+    void setUpBookings() {
+        currentBooking = bookingRepository.save(new Booking(null,
+                LocalDateTime.now().minusDays(1), LocalDateTime.now().plusDays(1),
+                item, booker, BookingStatus.APPROVED));
+        pastBooking = bookingRepository.save(new Booking(null,
+                LocalDateTime.now().minusDays(5), LocalDateTime.now().minusDays(3),
+                item, booker, BookingStatus.APPROVED));
+        futureWaitingBooking = bookingRepository.save(new Booking(null,
+                LocalDateTime.now().plusDays(3), LocalDateTime.now().plusDays(5),
+                item, booker, BookingStatus.WAITING));
+        rejectedBooking = bookingRepository.save(new Booking(null,
+                LocalDateTime.now().plusDays(10), LocalDateTime.now().plusDays(12),
+                item, booker, BookingStatus.REJECTED));
     }
 
     @Test
@@ -173,5 +193,65 @@ class BookingServiceImplIntegrationTest {
         List<BookingDto> bookings = bookingService.getAllByOwner(owner.getId(), BookingState.ALL);
 
         assertThat(bookings).hasSize(1);
+    }
+
+    @Test
+    void getAllByBookerCurrent() {
+        assertThat(bookingService.getAllByBooker(booker.getId(), BookingState.CURRENT))
+                .extracting("id").containsExactly(currentBooking.getId());
+    }
+
+    @Test
+    void getAllByBookerPast() {
+        assertThat(bookingService.getAllByBooker(booker.getId(), BookingState.PAST))
+                .extracting("id").containsExactly(pastBooking.getId());
+    }
+
+    @Test
+    void getAllByBookerFuture() {
+        assertThat(bookingService.getAllByBooker(booker.getId(), BookingState.FUTURE))
+                .hasSize(2);
+    }
+
+    @Test
+    void getAllByBookerWaiting() {
+        assertThat(bookingService.getAllByBooker(booker.getId(), BookingState.WAITING))
+                .extracting("id").containsExactly(futureWaitingBooking.getId());
+    }
+
+    @Test
+    void getAllByBookerRejected() {
+        assertThat(bookingService.getAllByBooker(booker.getId(), BookingState.REJECTED))
+                .extracting("id").containsExactly(rejectedBooking.getId());
+    }
+
+    @Test
+    void getAllByOwnerCurrent() {
+        assertThat(bookingService.getAllByOwner(owner.getId(), BookingState.CURRENT))
+                .extracting("id").containsExactly(currentBooking.getId());
+    }
+
+    @Test
+    void getAllByOwnerPast() {
+        assertThat(bookingService.getAllByOwner(owner.getId(), BookingState.PAST))
+                .extracting("id").containsExactly(pastBooking.getId());
+    }
+
+    @Test
+    void getAllByOwnerFuture() {
+        assertThat(bookingService.getAllByOwner(owner.getId(), BookingState.FUTURE))
+                .hasSize(2);
+    }
+
+    @Test
+    void getAllByOwnerWaiting() {
+        assertThat(bookingService.getAllByOwner(owner.getId(), BookingState.WAITING))
+                .extracting("id").containsExactly(futureWaitingBooking.getId());
+    }
+
+    @Test
+    void getAllByOwnerRejected() {
+        assertThat(bookingService.getAllByOwner(owner.getId(), BookingState.REJECTED))
+                .extracting("id").containsExactly(rejectedBooking.getId());
     }
 }

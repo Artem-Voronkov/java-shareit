@@ -11,10 +11,7 @@ import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.BookingStatus;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
-import ru.practicum.shareit.item.dto.CommentDto;
-import ru.practicum.shareit.item.dto.CreateCommentDto;
-import ru.practicum.shareit.item.dto.ItemBookingDto;
-import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.request.ItemRequest;
 import ru.practicum.shareit.request.ItemRequestRepository;
@@ -161,5 +158,43 @@ class ItemServiceImplIntegrationTest {
         assertThatThrownBy(() -> itemService.addComment(booker.getId(), item.getId(),
                 new CreateCommentDto("Отличная вещь!")))
                 .isInstanceOf(ValidationException.class);
+    }
+
+    @Test
+    void getByIdAsOwner() {
+        Item item = itemRepository.save(new Item(null, "Дрель", "Описание", true, owner, null));
+        User booker2 = userRepository.save(new User(null, "Booker2", "booker2@test.com"));
+        bookingRepository.save(new Booking(null,
+                LocalDateTime.now().minusDays(5), LocalDateTime.now().minusDays(3),
+                item, booker, BookingStatus.APPROVED));
+        bookingRepository.save(new Booking(null,
+                LocalDateTime.now().plusDays(3), LocalDateTime.now().plusDays(5),
+                item, booker2, BookingStatus.APPROVED));
+
+        ItemDetailsDto details = itemService.getById(owner.getId(), item.getId());
+
+        assertThat(details.getLastBooking()).isNotNull();
+        assertThat(details.getLastBooking().getBookerId()).isEqualTo(booker.getId());
+        assertThat(details.getNextBooking()).isNotNull();
+        assertThat(details.getNextBooking().getBookerId()).isEqualTo(booker2.getId());
+    }
+
+    @Test
+    void getByIdAsNotOwner() {
+        Item item = itemRepository.save(new Item(null, "Дрель", "Описание", true, owner, null));
+        bookingRepository.save(new Booking(null,
+                LocalDateTime.now().minusDays(5), LocalDateTime.now().minusDays(3),
+                item, booker, BookingStatus.APPROVED));
+
+        ItemDetailsDto details = itemService.getById(booker.getId(), item.getId());
+
+        assertThat(details.getLastBooking()).isNull();
+        assertThat(details.getNextBooking()).isNull();
+    }
+
+    @Test
+    void getByIdNotFound() {
+        assertThatThrownBy(() -> itemService.getById(owner.getId(), 999L))
+                .isInstanceOf(NotFoundException.class);
     }
 }
