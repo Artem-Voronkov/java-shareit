@@ -175,24 +175,30 @@ class BookingServiceImplIntegrationTest {
 
     @Test
     void getAllByBooker() {
-        bookingRepository.save(new Booking(null,
+        int before = bookingService.getAllByBooker(booker.getId(), BookingState.ALL).size();
+
+        Booking added = bookingRepository.save(new Booking(null,
                 LocalDateTime.now().plusDays(1), LocalDateTime.now().plusDays(2),
                 item, booker, BookingStatus.WAITING));
 
         List<BookingDto> bookings = bookingService.getAllByBooker(booker.getId(), BookingState.ALL);
 
-        assertThat(bookings).hasSize(1);
+        assertThat(bookings).hasSize(before + 1);
+        assertThat(bookings).extracting("id").contains(added.getId());
     }
 
     @Test
     void getAllByOwner() {
-        bookingRepository.save(new Booking(null,
+        int before = bookingService.getAllByOwner(owner.getId(), BookingState.ALL).size();
+
+        Booking added = bookingRepository.save(new Booking(null,
                 LocalDateTime.now().plusDays(1), LocalDateTime.now().plusDays(2),
                 item, booker, BookingStatus.WAITING));
 
         List<BookingDto> bookings = bookingService.getAllByOwner(owner.getId(), BookingState.ALL);
 
-        assertThat(bookings).hasSize(1);
+        assertThat(bookings).hasSize(before + 1);
+        assertThat(bookings).extracting("id").contains(added.getId());
     }
 
     @Test
