@@ -25,6 +25,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 class BookingClientTest {
 
     private static final String SERVER_URL = "http://localhost:9090";
+    private static final String USER_ID_HEADER = "X-Sharer-User-Id";
 
     private BookingClient client;
     private MockRestServiceServer server;
@@ -43,7 +44,7 @@ class BookingClientTest {
     void bookItem() {
         server.expect(requestTo(SERVER_URL + "/bookings"))
                 .andExpect(method(HttpMethod.POST))
-                .andExpect(header("X-Sharer-User-Id", "2"))
+                .andExpect(header(USER_ID_HEADER, "2"))
                 .andRespond(withSuccess("{\"id\":1,\"status\":\"WAITING\"}", MediaType.APPLICATION_JSON));
 
         BookItemRequestDto dto = new BookItemRequestDto(1L,
@@ -57,7 +58,7 @@ class BookingClientTest {
     void approve() {
         server.expect(requestTo(SERVER_URL + "/bookings/10?approved=true"))
                 .andExpect(method(HttpMethod.PATCH))
-                .andExpect(header("X-Sharer-User-Id", "1"))
+                .andExpect(header(USER_ID_HEADER, "1"))
                 .andRespond(withSuccess("{\"id\":10,\"status\":\"APPROVED\"}", MediaType.APPLICATION_JSON));
 
         ResponseEntity<Object> response = client.approve(1L, 10L, true);
@@ -69,7 +70,7 @@ class BookingClientTest {
     void getById() {
         server.expect(requestTo(SERVER_URL + "/bookings/10"))
                 .andExpect(method(HttpMethod.GET))
-                .andExpect(header("X-Sharer-User-Id", "2"))
+                .andExpect(header(USER_ID_HEADER, "2"))
                 .andRespond(withSuccess("{\"id\":10}", MediaType.APPLICATION_JSON));
 
         ResponseEntity<Object> response = client.getById(2L, 10L);

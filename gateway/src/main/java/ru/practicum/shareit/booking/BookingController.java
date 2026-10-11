@@ -17,6 +17,7 @@ import ru.practicum.shareit.booking.dto.BookItemRequestDto;
 public class BookingController {
 
     private static final String USER_ID_HEADER = "X-Sharer-User-Id";
+    private static final String BOOKING_ID_PATH = "/{bookingId}";
 
     private final BookingClient bookingClient;
 
@@ -27,7 +28,7 @@ public class BookingController {
         return bookingClient.bookItem(userId, requestDto);
     }
 
-    @PatchMapping("/{bookingId}")
+    @PatchMapping(BOOKING_ID_PATH)
     public ResponseEntity<Object> approve(@RequestHeader(USER_ID_HEADER) long ownerId,
                                           @PathVariable long bookingId,
                                           @RequestParam boolean approved) {
@@ -35,7 +36,7 @@ public class BookingController {
         return bookingClient.approve(ownerId, bookingId, approved);
     }
 
-    @GetMapping("/{bookingId}")
+    @GetMapping(BOOKING_ID_PATH)
     public ResponseEntity<Object> getById(@RequestHeader(USER_ID_HEADER) long userId,
                                           @PathVariable long bookingId) {
         log.info("Get booking {}, userId={}", bookingId, userId);

@@ -25,6 +25,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 class ItemClientTest {
 
     private static final String SERVER_URL = "http://localhost:9090";
+    private static final String USER_ID_HEADER = "X-Sharer-User-Id";
 
     private ItemClient client;
     private MockRestServiceServer server;
@@ -43,7 +44,7 @@ class ItemClientTest {
     void create() {
         server.expect(requestTo(SERVER_URL + "/items"))
                 .andExpect(method(HttpMethod.POST))
-                .andExpect(header("X-Sharer-User-Id", "2"))
+                .andExpect(header(USER_ID_HEADER, "2"))
                 .andRespond(withSuccess("{\"id\":1}", MediaType.APPLICATION_JSON));
 
         ItemDto dto = new ItemDto(null, "Дрель", "Описание", true, null);
@@ -56,7 +57,7 @@ class ItemClientTest {
     void update() {
         server.expect(requestTo(SERVER_URL + "/items/5"))
                 .andExpect(method(HttpMethod.PATCH))
-                .andExpect(header("X-Sharer-User-Id", "2"))
+                .andExpect(header(USER_ID_HEADER, "2"))
                 .andRespond(withSuccess("{\"id\":5}", MediaType.APPLICATION_JSON));
 
         ItemDto dto = new ItemDto(5L, "Дрель", "Описание", false, null);
@@ -69,7 +70,7 @@ class ItemClientTest {
     void getById() {
         server.expect(requestTo(SERVER_URL + "/items/5"))
                 .andExpect(method(HttpMethod.GET))
-                .andExpect(header("X-Sharer-User-Id", "2"))
+                .andExpect(header(USER_ID_HEADER, "2"))
                 .andRespond(withSuccess("{\"id\":5}", MediaType.APPLICATION_JSON));
 
         ResponseEntity<Object> response = client.getById(2L, 5L);
@@ -81,7 +82,7 @@ class ItemClientTest {
     void getAllByOwner() {
         server.expect(requestTo(SERVER_URL + "/items"))
                 .andExpect(method(HttpMethod.GET))
-                .andExpect(header("X-Sharer-User-Id", "2"))
+                .andExpect(header(USER_ID_HEADER, "2"))
                 .andRespond(withSuccess("[]", MediaType.APPLICATION_JSON));
 
         ResponseEntity<Object> response = client.getAllByOwner(2L);
@@ -104,7 +105,7 @@ class ItemClientTest {
     void addComment() {
         server.expect(requestTo(SERVER_URL + "/items/5/comment"))
                 .andExpect(method(HttpMethod.POST))
-                .andExpect(header("X-Sharer-User-Id", "2"))
+                .andExpect(header(USER_ID_HEADER, "2"))
                 .andRespond(withSuccess("{\"id\":1}", MediaType.APPLICATION_JSON));
 
         ResponseEntity<Object> response = client.addComment(2L, 5L, new CreateCommentDto("Отзыв"));

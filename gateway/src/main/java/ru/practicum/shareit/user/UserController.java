@@ -16,6 +16,8 @@ import ru.practicum.shareit.user.dto.UserDto;
 @Validated
 public class UserController {
 
+    private static final String USER_ID_PATH = "/{userId}";
+
     private final UserClient userClient;
 
     @PostMapping
@@ -24,13 +26,13 @@ public class UserController {
         return userClient.create(userDto);
     }
 
-    @PatchMapping("/{userId}")
+    @PatchMapping(USER_ID_PATH)
     public ResponseEntity<Object> update(@PathVariable Long userId, @RequestBody UserDto userDto) {
         log.info("Updating user {}, userId={}", userDto, userId);
         return userClient.update(userId, userDto);
     }
 
-    @GetMapping("/{userId}")
+    @GetMapping(USER_ID_PATH)
     public ResponseEntity<Object> getById(@PathVariable Long userId) {
         log.info("Get user {}", userId);
         return userClient.getById(userId);
@@ -42,7 +44,7 @@ public class UserController {
         return userClient.getAll();
     }
 
-    @DeleteMapping("/{userId}")
+    @DeleteMapping(USER_ID_PATH)
     public ResponseEntity<Object> delete(@PathVariable Long userId) {
         log.info("Delete user {}", userId);
         return userClient.delete(userId);

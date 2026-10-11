@@ -26,6 +26,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 class BaseClientTest {
 
     private static final String SERVER_URL = "http://localhost:9090";
+    private static final String USER_ID_HEADER = "X-Sharer-User-Id";
 
     private MockRestServiceServer server;
     private BaseClient client;
@@ -53,7 +54,7 @@ class BaseClientTest {
     void getWithUserId() {
         server.expect(requestTo(SERVER_URL + "/items"))
                 .andExpect(method(GET))
-                .andExpect(header("X-Sharer-User-Id", "5"))
+                .andExpect(header(USER_ID_HEADER, "5"))
                 .andRespond(withSuccess("[]", MediaType.APPLICATION_JSON));
 
         ResponseEntity<Object> response = client.get("/items", 5L);
@@ -87,7 +88,7 @@ class BaseClientTest {
     void postWithUserId() {
         server.expect(requestTo(SERVER_URL + "/items"))
                 .andExpect(method(POST))
-                .andExpect(header("X-Sharer-User-Id", "3"))
+                .andExpect(header(USER_ID_HEADER, "3"))
                 .andRespond(withSuccess("{\"id\":1}", MediaType.APPLICATION_JSON));
 
         ResponseEntity<Object> response = client.post("/items", 3L, Map.of("name", "test"));
@@ -143,7 +144,7 @@ class BaseClientTest {
     void patchWithUserIdNoBody() {
         server.expect(requestTo(SERVER_URL + "/items/1"))
                 .andExpect(method(PATCH))
-                .andExpect(header("X-Sharer-User-Id", "3"))
+                .andExpect(header(USER_ID_HEADER, "3"))
                 .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
 
         ResponseEntity<Object> response = client.patch("/items/1", 3L);
@@ -188,7 +189,7 @@ class BaseClientTest {
     void deleteWithUserId() {
         server.expect(requestTo(SERVER_URL + "/items/1"))
                 .andExpect(method(DELETE))
-                .andExpect(header("X-Sharer-User-Id", "3"))
+                .andExpect(header(USER_ID_HEADER, "3"))
                 .andRespond(withSuccess());
 
         ResponseEntity<Object> response = client.delete("/items/1", 3L);

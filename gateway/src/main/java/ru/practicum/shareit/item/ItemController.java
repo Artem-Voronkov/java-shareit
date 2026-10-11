@@ -18,6 +18,7 @@ import ru.practicum.shareit.item.dto.ItemDto;
 public class ItemController {
 
     private static final String USER_ID_HEADER = "X-Sharer-User-Id";
+    private static final String ITEM_ID_PATH = "/{itemId}";
 
     private final ItemClient itemClient;
 
@@ -28,7 +29,7 @@ public class ItemController {
         return itemClient.create(userId, itemDto);
     }
 
-    @PatchMapping("/{itemId}")
+    @PatchMapping(ITEM_ID_PATH)
     public ResponseEntity<Object> update(@RequestHeader(USER_ID_HEADER) long userId,
                                          @PathVariable long itemId,
                                          @RequestBody ItemDto itemDto) {
@@ -36,7 +37,7 @@ public class ItemController {
         return itemClient.update(userId, itemId, itemDto);
     }
 
-    @GetMapping("/{itemId}")
+    @GetMapping(ITEM_ID_PATH)
     public ResponseEntity<Object> getById(@RequestHeader(USER_ID_HEADER) long userId,
                                           @PathVariable long itemId) {
         log.info("Get item {}, userId={}", itemId, userId);
@@ -56,7 +57,7 @@ public class ItemController {
         return itemClient.search(userId, text);
     }
 
-    @PostMapping("/{itemId}/comment")
+    @PostMapping(ITEM_ID_PATH + "/comment")
     public ResponseEntity<Object> addComment(@RequestHeader(USER_ID_HEADER) long userId,
                                              @PathVariable long itemId,
                                              @RequestBody @Valid CreateCommentDto dto) {

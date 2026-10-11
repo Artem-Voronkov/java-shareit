@@ -24,6 +24,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 class ItemRequestClientTest {
 
     private static final String SERVER_URL = "http://localhost:9090";
+    private static final String USER_ID_HEADER = "X-Sharer-User-Id";
 
     private ItemRequestClient client;
     private MockRestServiceServer server;
@@ -42,7 +43,7 @@ class ItemRequestClientTest {
     void create() {
         server.expect(requestTo(SERVER_URL + "/requests"))
                 .andExpect(method(HttpMethod.POST))
-                .andExpect(header("X-Sharer-User-Id", "2"))
+                .andExpect(header(USER_ID_HEADER, "2"))
                 .andRespond(withSuccess("{\"id\":1}", MediaType.APPLICATION_JSON));
 
         ResponseEntity<Object> response = client.create(2L, new CreateItemRequestDto("Нужна дрель"));
@@ -54,7 +55,7 @@ class ItemRequestClientTest {
     void getOwn() {
         server.expect(requestTo(SERVER_URL + "/requests"))
                 .andExpect(method(HttpMethod.GET))
-                .andExpect(header("X-Sharer-User-Id", "2"))
+                .andExpect(header(USER_ID_HEADER, "2"))
                 .andRespond(withSuccess("[]", MediaType.APPLICATION_JSON));
 
         ResponseEntity<Object> response = client.getOwn(2L);
@@ -66,7 +67,7 @@ class ItemRequestClientTest {
     void getAll() {
         server.expect(requestTo(SERVER_URL + "/requests/all"))
                 .andExpect(method(HttpMethod.GET))
-                .andExpect(header("X-Sharer-User-Id", "2"))
+                .andExpect(header(USER_ID_HEADER, "2"))
                 .andRespond(withSuccess("[]", MediaType.APPLICATION_JSON));
 
         ResponseEntity<Object> response = client.getAll(2L);
@@ -78,7 +79,7 @@ class ItemRequestClientTest {
     void getById() {
         server.expect(requestTo(SERVER_URL + "/requests/7"))
                 .andExpect(method(HttpMethod.GET))
-                .andExpect(header("X-Sharer-User-Id", "2"))
+                .andExpect(header(USER_ID_HEADER, "2"))
                 .andRespond(withSuccess("{\"id\":7}", MediaType.APPLICATION_JSON));
 
         ResponseEntity<Object> response = client.getById(2L, 7L);
